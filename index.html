@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Comandos no RStudio by gcmmoreira</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Comandos no RStudio</h1>
+      <h2 class="project-tagline">Lista de comandos utilizados para construção do mapa genético de ligação</h2>
+      <a href="https://github.com/gcmmoreira/commands" class="btn">View on GitHub</a>
+      <a href="https://github.com/gcmmoreira/commands/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/gcmmoreira/commands/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <p>install.packages("onemap")
+library (onemap)
+Dados_mimulus &lt;-read.mapmaker(dir="E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6", file="m_feb06.raw")
+summary(Dados_mimulus)
+unique(Dados_mimulus$segr.type)</p>
+
+<p>genotipos&lt;-(Dados_mimulus$geno.mmk)$geno</p>
+
+<p>Padrao_c8&lt;-which(Dados_mimulus$segr.type=="C.8")
+Padrao_b37&lt;-which(Dados_mimulus$segr.type=="B3.7")</p>
+
+<p>C8.genotip&lt;-matrix(c(NA),nrow=nrow(genotipos),ncol=length(Padrao_c8))
+B3.genotip&lt;-matrix(c(NA),nrow=nrow(genotipos),ncol=length(Padrao_b37))</p>
+
+<p>for (i in 1:length(Padrao_c8)){
+  C8.genotip[,i]&lt;-genotipos[,Padrao_c8[i]]<br>
+}
+for (i in 1:length(Padrao_b37)){
+  B3.genotip[,i]&lt;-genotipos[,Padrao_b37[i]]
+}</p>
+
+<p>qui.quadrado&lt;-function(x,cross=""){  </p>
+
+<p>if(cross=="f2d")
+    return(chisq.test(table(x),p=c(1/4,3/4))$p.value) </p>
+
+<p>else if(cross=="f2c")
+    return(chisq.test(table(x),p=c(1/4,1/2,1/4))$p.value)</p>
+
+<p>else stop("Tipo de cruzamento inválido")
+}</p>
+
+<p>Dominant.results&lt;-apply(C8.genotip,2,qui.quadrado,cross="f2d")
+Codominant.results&lt;-apply(B3.genotip,2,qui.quadrado,cross="f2c")</p>
+
+<p>Dominant.results</p>
+
+<p>Codominant.results</p>
+
+<h2>
+<a id="correção-bonferroni" class="anchor" href="#corre%C3%A7%C3%A3o-bonferroni" aria-hidden="true"><span class="octicon octicon-link"></span></a>correção bonferroni</h2>
+
+<p>bonferroni=0.05/418
+Dominant.Bonferroni&lt;-which(Dominant.results &lt;= bonferroni)
+Codominant.Bonferroni&lt;-which(Codominant.results&lt;=bonferroni)
+Dominant.Bonferroni
+Codominant.Bonferroni</p>
+
+<h2>
+<a id="numero-de-marcadores-removidos" class="anchor" href="#numero-de-marcadores-removidos" aria-hidden="true"><span class="octicon octicon-link"></span></a>numero de marcadores removidos</h2>
+
+<p>length(Dominant.Bonferroni)
+length(Codominant.Bonferroni)</p>
+
+<h2>
+<a id="twoptsnome-do-objeto-da-classe-rf2pts-com-análise-de-dois-pontos" class="anchor" href="#twoptsnome-do-objeto-da-classe-rf2pts-com-an%C3%A1lise-de-dois-pontos" aria-hidden="true"><span class="octicon octicon-link"></span></a>twopts=nome do objeto da classe rf.2pts com análise de dois pontos</h2>
+
+<p>twopts &lt;- rf.2pts(Dados_mimulus)</p>
+
+<h2>
+<a id="criação-do-arquivo-de-sequencias-dos-dados-da-análise-de-dois-pontos" class="anchor" href="#cria%C3%A7%C3%A3o-do-arquivo-de-sequencias-dos-dados-da-an%C3%A1lise-de-dois-pontos" aria-hidden="true"><span class="octicon octicon-link"></span></a>criação do arquivo de sequencias dos dados da análise de dois pontos</h2>
+
+<p>all.mrk&lt;-make.seq(twopts, "all")</p>
+
+<h2>
+<a id="para-designar-grupos-de-ligação-para-marcadores" class="anchor" href="#para-designar-grupos-de-liga%C3%A7%C3%A3o-para-marcadores" aria-hidden="true"><span class="octicon octicon-link"></span></a>para designar grupos de ligação para marcadores</h2>
+
+<p>rcombination &lt;- (0.5)<em>(((2.718^(4</em>(37/100)))-1)/((2.718^(4*(37/100)))+1))
+lgs&lt;-group(all.mrk, LOD=6, max.rf=rcombination)</p>
+
+<h2>
+<a id="para-o-grupo-1" class="anchor" href="#para-o-grupo-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Para o grupo 1</h2>
+
+<h2>
+<a id="arquivo-das-sequências" class="anchor" href="#arquivo-das-sequ%C3%AAncias" aria-hidden="true"><span class="octicon octicon-link"></span></a>arquivo das sequências</h2>
+
+<p>set.map.fun(type="kosambi")
+LG1A &lt;- make.seq(lgs,1)
+TESTE1 &lt;- drop.marker(LG1A, Dominant.Bonferroni)
+LG1 &lt;- drop.marker(TESTE1, Codominant.Bonferroni)
+LG1.rcd.f2 &lt;- record(LG1)</p>
+
+<h2>
+<a id="para-automatizar-o-processo-de-mapeamento-de-uma-sequência-de-marcadores-combinando-comparar-e-funções-tryseq" class="anchor" href="#para-automatizar-o-processo-de-mapeamento-de-uma-sequ%C3%AAncia-de-marcadores-combinando-comparar-e-fun%C3%A7%C3%B5es-tryseq" aria-hidden="true"><span class="octicon octicon-link"></span></a>para automatizar o processo de mapeamento de uma sequência de marcadores, combinando comparar e funções try.seq</h2>
+
+<p>LG1.ord &lt;- order.seq(LG1, n.init=5, subset.search=c("twopt"),
+                     subset.n.try=30, subset.THRES=4,
+                     twopt.alg=c("rec"), 
+                     THRES=4, touchdown=TRUE, draw.try=FALSE,
+                     wait=1, tol=10E-2) ##o uso das opções de try, thres etc. proporcinou um maior aproveitamento de marcadores##
+(LG1.final&lt;-make.seq(LG1.ord, "force"))</p>
+
+<h2>
+<a id="compara-e-exibe-ordens-alternativas-plausíveis-para-uma-determinada-combinação" class="anchor" href="#compara-e-exibe-ordens-alternativas-plaus%C3%ADveis-para-uma-determinada-combina%C3%A7%C3%A3o" aria-hidden="true"><span class="octicon octicon-link"></span></a>Compara e exibe ordens alternativas plausíveis para uma determinada combinação</h2>
+
+<p>ripple.seq(LG1.final,ws=4,LOD=3,tol=10E-2)
+graph_G1 &lt;-rf.graph.table (LG1.final)</p>
+
+<p>LG1_final_map &lt;- draw.map(LG1.final, names= TRUE, grid=TRUE, cex.mrk=0.6)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+write.map(LG1.final, "mapa_onemap_G1.map")</p>
+
+<p>require(qtl)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+dat1 &lt;- read.cross("mm", file="m_feb06.raw", mapfile="mapa_onemap_G1.map")
+newmap &lt;- est.map(dat1, tol=1e-6, map.function="kosambi")</p>
+
+<p>plotMap(newmap, show.marker.names=TRUE, verbose=TRUE, ylab="Distance (cM)", xlab="group")</p>
+
+<h2>
+<a id="para-o-grupo-2" class="anchor" href="#para-o-grupo-2" aria-hidden="true"><span class="octicon octicon-link"></span></a>Para o grupo 2</h2>
+
+<h2>
+<a id="arquivo-das-sequências-1" class="anchor" href="#arquivo-das-sequ%C3%AAncias-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>arquivo das sequências</h2>
+
+<p>set.map.fun(type="kosambi")
+LG2A &lt;- make.seq(lgs,2)
+TESTE2 &lt;- drop.marker(LG2A, Dominant.Bonferroni)
+LG2 &lt;- drop.marker(TESTE2, Codominant.Bonferroni)
+LG2.rcd.f2 &lt;- record(LG2)</p>
+
+<h2>
+<a id="para-automatizar-o-processo-de-mapeamento-de-uma-sequência-de-marcadores-combinando-comparar-e-funções-tryseq-1" class="anchor" href="#para-automatizar-o-processo-de-mapeamento-de-uma-sequ%C3%AAncia-de-marcadores-combinando-comparar-e-fun%C3%A7%C3%B5es-tryseq-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>para automatizar o processo de mapeamento de uma sequência de marcadores, combinando comparar e funções try.seq</h2>
+
+<p>LG2.ord &lt;- order.seq(LG2, n.init=5, subset.search=c("twopt"),
+                     subset.n.try=30, subset.THRES=4,
+                     twopt.alg=c("rec"), 
+                     THRES=4, touchdown=TRUE, draw.try=FALSE,
+                     wait=1, tol=10E-2) ##o uso das opções de try, thres etc. proporcinou um maior aproveitamento de marcadores##
+(LG2.final&lt;-make.seq(LG2.ord, "force"))</p>
+
+<h2>
+<a id="compara-e-exibe-ordens-alternativas-plausíveis-para-uma-determinada-combinação-1" class="anchor" href="#compara-e-exibe-ordens-alternativas-plaus%C3%ADveis-para-uma-determinada-combina%C3%A7%C3%A3o-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Compara e exibe ordens alternativas plausíveis para uma determinada combinação</h2>
+
+<p>ripple.seq(LG2.final,ws=4,LOD=3,tol=10E-2)
+graph_G2 &lt;-rf.graph.table (LG2.final)</p>
+
+<p>LG2_final_map &lt;- draw.map(LG2.final, names= TRUE, grid=TRUE, cex.mrk=0.6)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+write.map(LG2.final, "mapa_onemap_G2.map")</p>
+
+<p>require(qtl)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+dat1 &lt;- read.cross("mm", file="m_feb06.raw", mapfile="mapa_onemap_G2.map")
+newmap &lt;- est.map(dat1, tol=1e-6, map.function="kosambi")</p>
+
+<p>plotMap(newmap, show.marker.names=TRUE, verbose=TRUE, ylab="Distance (cM)", xlab="group")</p>
+
+<h2>
+<a id="para-o-grupo-3" class="anchor" href="#para-o-grupo-3" aria-hidden="true"><span class="octicon octicon-link"></span></a>Para o grupo 3</h2>
+
+<h2>
+<a id="arquivo-das-sequências-2" class="anchor" href="#arquivo-das-sequ%C3%AAncias-2" aria-hidden="true"><span class="octicon octicon-link"></span></a>arquivo das sequências</h2>
+
+<p>set.map.fun(type="kosambi")
+LG3A &lt;- make.seq(lgs,3)
+TESTE3 &lt;- drop.marker(LG3A, Dominant.Bonferroni)
+LG3 &lt;- drop.marker(TESTE3, Codominant.Bonferroni)
+LG3.rcd.f2 &lt;- record(LG3)</p>
+
+<h2>
+<a id="para-automatizar-o-processo-de-mapeamento-de-uma-sequência-de-marcadores-combinando-comparar-e-funções-tryseq-2" class="anchor" href="#para-automatizar-o-processo-de-mapeamento-de-uma-sequ%C3%AAncia-de-marcadores-combinando-comparar-e-fun%C3%A7%C3%B5es-tryseq-2" aria-hidden="true"><span class="octicon octicon-link"></span></a>para automatizar o processo de mapeamento de uma sequência de marcadores, combinando comparar e funções try.seq</h2>
+
+<p>LG3.ord &lt;- order.seq(LG3, n.init=5, subset.search=c("twopt"),
+                     subset.n.try=30, subset.THRES=4,
+                     twopt.alg=c("rec"), 
+                     THRES=4, touchdown=TRUE, draw.try=FALSE,
+                     wait=1, tol=10E-2) ##o uso das opções de try, thres etc. proporcinou um maior aproveitamento de marcadores##
+(LG3.final&lt;-make.seq(LG3.ord, "force"))</p>
+
+<h2>
+<a id="compara-e-exibe-ordens-alternativas-plausíveis-para-uma-determinada-combinação-2" class="anchor" href="#compara-e-exibe-ordens-alternativas-plaus%C3%ADveis-para-uma-determinada-combina%C3%A7%C3%A3o-2" aria-hidden="true"><span class="octicon octicon-link"></span></a>Compara e exibe ordens alternativas plausíveis para uma determinada combinação</h2>
+
+<p>ripple.seq(LG3.final,ws=4,LOD=3,tol=10E-2)
+graph_G3 &lt;-rf.graph.table (LG3.final)</p>
+
+<p>LG3_final_map &lt;- draw.map(LG3.final, names= TRUE, grid=TRUE, cex.mrk=0.6)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+write.map(LG3.final, "mapa_onemap_G3.map")</p>
+
+<p>require(qtl)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+dat1 &lt;- read.cross("mm", file="m_feb06.raw", mapfile="mapa_onemap_G3.map")
+newmap &lt;- est.map(dat1, tol=1e-6, map.function="kosambi")</p>
+
+<p>plotMap(newmap, show.marker.names=TRUE, verbose=TRUE, ylab="Distance (cM)", xlab="group")</p>
+
+<h2>
+<a id="dividindo-o-grupo-3-novamente" class="anchor" href="#dividindo-o-grupo-3-novamente" aria-hidden="true"><span class="octicon octicon-link"></span></a>dividindo o grupo 3 novamente</h2>
+
+<p>rcombination &lt;- (0.5)<em>(((2.718^(4</em>(25/100)))-1)/((2.718^(4*(25/100)))+1))
+lgs1teste&lt;-group(LG3, LOD=7, max.rf=rcombination)
+lgs1teste</p>
+
+<p>rcombination</p>
+
+<h2>
+<a id="para-o-grupo-3a" class="anchor" href="#para-o-grupo-3a" aria-hidden="true"><span class="octicon octicon-link"></span></a>PARA o GRUPO 3a</h2>
+
+<h2>
+<a id="arquivo-das-sequências-3" class="anchor" href="#arquivo-das-sequ%C3%AAncias-3" aria-hidden="true"><span class="octicon octicon-link"></span></a>arquivo das sequências</h2>
+
+<p>set.map.fun(type="kosambi")
+lg3a &lt;- make.seq(lgs1teste,1)
+teste3a &lt;- drop.marker(lg3a, Dominant.Bonferroni)
+lg3a &lt;- drop.marker(teste3a, Codominant.Bonferroni)
+lg3a.rcd.f2 &lt;- record(lg3a)</p>
+
+<h2>
+<a id="para-automatizar-o-processo-de-mapeamento-de-uma-sequência-de-marcadores-combinando-comparar-e-funções-tryseq-3" class="anchor" href="#para-automatizar-o-processo-de-mapeamento-de-uma-sequ%C3%AAncia-de-marcadores-combinando-comparar-e-fun%C3%A7%C3%B5es-tryseq-3" aria-hidden="true"><span class="octicon octicon-link"></span></a>para automatizar o processo de mapeamento de uma sequência de marcadores, combinando comparar e funções try.seq</h2>
+
+<p>lg3a.ord &lt;- order.seq(lg3a, n.init=5, subset.search=c("twopt"),
+                     subset.n.try=30, subset.THRES=4,
+                     twopt.alg=c("rec"), 
+                     THRES=4, touchdown=TRUE, draw.try=FALSE,
+                     wait=1, tol=10E-2) ##o uso das opções de try, thres etc. proporcinou um maior aproveitamento de marcadores##
+(lg3a.final&lt;-make.seq(lg3a.ord, "force"))</p>
+
+<h2>
+<a id="compara-e-exibe-ordens-alternativas-plausíveis-para-uma-determinada-combinação-3" class="anchor" href="#compara-e-exibe-ordens-alternativas-plaus%C3%ADveis-para-uma-determinada-combina%C3%A7%C3%A3o-3" aria-hidden="true"><span class="octicon octicon-link"></span></a>Compara e exibe ordens alternativas plausíveis para uma determinada combinação</h2>
+
+<p>ripple.seq(lg3a.final,ws=4,LOD=3,tol=10E-2)
+graph_G3a &lt;-rf.graph.table (lg3a.final)</p>
+
+<p>lg3a_final_map &lt;- draw.map(lg3a.final, names= TRUE, grid=TRUE, cex.mrk=0.6)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+write.map(lg3a.final, "mapa_onemap_g3a.map")</p>
+
+<p>require(qtl)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+dat1 &lt;- read.cross("mm", file="m_feb06.raw", mapfile="mapa_onemap_g3a.map")
+newmap &lt;- est.map(dat1, tol=1e-6, map.function="kosambi")</p>
+
+<p>plotMap(newmap, show.marker.names=TRUE, verbose=TRUE, ylab="Distance (cM)", xlab="group")</p>
+
+<h2>
+<a id="para-o-grupo-3b" class="anchor" href="#para-o-grupo-3b" aria-hidden="true"><span class="octicon octicon-link"></span></a>PARA o GRUPO 3b</h2>
+
+<h2>
+<a id="arquivo-das-sequências-4" class="anchor" href="#arquivo-das-sequ%C3%AAncias-4" aria-hidden="true"><span class="octicon octicon-link"></span></a>arquivo das sequências</h2>
+
+<p>set.map.fun(type="kosambi")
+lg3b &lt;- make.seq(lgs1teste,2)
+teste3b &lt;- drop.marker(lg3b, Dominant.Bonferroni)
+lg3b &lt;- drop.marker(teste3b, Codominant.Bonferroni)
+lg3b.rcd.f2 &lt;- record(lg3b)</p>
+
+<h2>
+<a id="para-automatizar-o-processo-de-mapeamento-de-uma-sequência-de-marcadores-combinando-comparar-e-funções-tryseq-4" class="anchor" href="#para-automatizar-o-processo-de-mapeamento-de-uma-sequ%C3%AAncia-de-marcadores-combinando-comparar-e-fun%C3%A7%C3%B5es-tryseq-4" aria-hidden="true"><span class="octicon octicon-link"></span></a>para automatizar o processo de mapeamento de uma sequência de marcadores, combinando comparar e funções try.seq</h2>
+
+<p>lg3b.ord &lt;- order.seq(lg3b, n.init=5, subset.search=c("twopt"),
+                      subset.n.try=30, subset.THRES=4,
+                      twopt.alg=c("rec"), 
+                      THRES=4, touchdown=TRUE, draw.try=FALSE,
+                      wait=1, tol=10E-2) ##o uso das opções de try, thres etc. proporcinou um maior aproveitamento de marcadores##
+(lg3b.final&lt;-make.seq(lg3b.ord, "force"))</p>
+
+<h2>
+<a id="compara-e-exibe-ordens-alternativas-plausíveis-para-uma-determinada-combinação-4" class="anchor" href="#compara-e-exibe-ordens-alternativas-plaus%C3%ADveis-para-uma-determinada-combina%C3%A7%C3%A3o-4" aria-hidden="true"><span class="octicon octicon-link"></span></a>Compara e exibe ordens alternativas plausíveis para uma determinada combinação</h2>
+
+<p>ripple.seq(lg3b.final,ws=4,LOD=3,tol=10E-2)
+graph_G3b &lt;-rf.graph.table (lg3b.final)</p>
+
+<p>lg3b_final_map &lt;- draw.map(lg3b.final, names= TRUE, grid=TRUE, cex.mrk=0.6)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+write.map(lg3b.final, "mapa_onemap_g3b.map")</p>
+
+<p>require(qtl)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+dat1 &lt;- read.cross("mm", file="m_feb06.raw", mapfile="mapa_onemap_g3b.map")
+newmap &lt;- est.map(dat1, tol=1e-6, map.function="kosambi")</p>
+
+<p>plotMap(newmap, show.marker.names=TRUE, verbose=TRUE, ylab="Distance (cM)", xlab="group")</p>
+
+<h2>
+<a id="para-o-grupo-3c" class="anchor" href="#para-o-grupo-3c" aria-hidden="true"><span class="octicon octicon-link"></span></a>PARA o GRUPO 3c</h2>
+
+<h2>
+<a id="arquivo-das-sequências-5" class="anchor" href="#arquivo-das-sequ%C3%AAncias-5" aria-hidden="true"><span class="octicon octicon-link"></span></a>arquivo das sequências</h2>
+
+<p>set.map.fun(type="kosambi")
+lg3c &lt;- make.seq(lgs1teste,3)
+teste3c &lt;- drop.marker(lg3c, Dominant.Bonferroni)
+lg3c &lt;- drop.marker(teste3c, Codominant.Bonferroni)
+lg3c.rcd.f2 &lt;- record(lg3c)</p>
+
+<h2>
+<a id="para-automatizar-o-processo-de-mapeamento-de-uma-sequência-de-marcadores-combinando-comparar-e-funções-tryseq-5" class="anchor" href="#para-automatizar-o-processo-de-mapeamento-de-uma-sequ%C3%AAncia-de-marcadores-combinando-comparar-e-fun%C3%A7%C3%B5es-tryseq-5" aria-hidden="true"><span class="octicon octicon-link"></span></a>para automatizar o processo de mapeamento de uma sequência de marcadores, combinando comparar e funções try.seq</h2>
+
+<p>lg3c.ord &lt;- order.seq(lg3c, n.init=5, subset.search=c("twopt"),
+                      subset.n.try=30, subset.THRES=4,
+                      twopt.alg=c("rec"), 
+                      THRES=4, touchdown=TRUE, draw.try=FALSE,
+                      wait=1, tol=10E-2) ##o uso das opções de try, thres etc. proporcinou um maior aproveitamento de marcadores##
+(lg3c.final&lt;-make.seq(lg3c.ord, "force"))</p>
+
+<h2>
+<a id="compara-e-exibe-ordens-alternativas-plausíveis-para-uma-determinada-combinação-5" class="anchor" href="#compara-e-exibe-ordens-alternativas-plaus%C3%ADveis-para-uma-determinada-combina%C3%A7%C3%A3o-5" aria-hidden="true"><span class="octicon octicon-link"></span></a>Compara e exibe ordens alternativas plausíveis para uma determinada combinação</h2>
+
+<p>ripple.seq(lg3c.final,ws=4,LOD=3,tol=10E-2)
+graph_G3c &lt;-rf.graph.table (lg3c.final)</p>
+
+<p>lg3c_final_map &lt;- draw.map(lg3c.final, names= TRUE, grid=TRUE, cex.mrk=0.6)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+write.map(lg3c.final, "mapa_onemap_g3c.map")</p>
+
+<p>require(qtl)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+dat1 &lt;- read.cross("mm", file="m_feb06.raw", mapfile="mapa_onemap_g3c.map")
+newmap &lt;- est.map(dat1, tol=1e-6, map.function="kosambi")</p>
+
+<p>plotMap(newmap, show.marker.names=TRUE, verbose=TRUE, ylab="Distance (cM)", xlab="group")</p>
+
+<h2>
+<a id="para-o-grupo-4" class="anchor" href="#para-o-grupo-4" aria-hidden="true"><span class="octicon octicon-link"></span></a>Para o grupo 4</h2>
+
+<h2>
+<a id="arquivo-das-sequências-6" class="anchor" href="#arquivo-das-sequ%C3%AAncias-6" aria-hidden="true"><span class="octicon octicon-link"></span></a>arquivo das sequências</h2>
+
+<p>set.map.fun(type="kosambi")
+LG4A &lt;- make.seq(lgs,4)
+TESTE4 &lt;- drop.marker(LG4A, Dominant.Bonferroni)
+LG4 &lt;- drop.marker(TESTE4, Codominant.Bonferroni)
+LG4.rcd.f2 &lt;- record(LG4)</p>
+
+<h2>
+<a id="para-automatizar-o-processo-de-mapeamento-de-uma-sequência-de-marcadores-combinando-comparar-e-funções-tryseq-6" class="anchor" href="#para-automatizar-o-processo-de-mapeamento-de-uma-sequ%C3%AAncia-de-marcadores-combinando-comparar-e-fun%C3%A7%C3%B5es-tryseq-6" aria-hidden="true"><span class="octicon octicon-link"></span></a>para automatizar o processo de mapeamento de uma sequência de marcadores, combinando comparar e funções try.seq</h2>
+
+<p>LG4.ord &lt;- order.seq(LG4, n.init=5, subset.search=c("twopt"),
+                     subset.n.try=30, subset.THRES=4,
+                     twopt.alg=c("rec"), 
+                     THRES=4, touchdown=TRUE, draw.try=FALSE,
+                     wait=1, tol=10E-2) ##o uso das opções de try, thres etc. proporcinou um maior aproveitamento de marcadores##
+(LG4.final&lt;-make.seq(LG4.ord, "force"))</p>
+
+<h2>
+<a id="compara-e-exibe-ordens-alternativas-plausíveis-para-uma-determinada-combinação-6" class="anchor" href="#compara-e-exibe-ordens-alternativas-plaus%C3%ADveis-para-uma-determinada-combina%C3%A7%C3%A3o-6" aria-hidden="true"><span class="octicon octicon-link"></span></a>Compara e exibe ordens alternativas plausíveis para uma determinada combinação</h2>
+
+<p>ripple.seq(LG4.final,ws=4,LOD=3,tol=10E-2)
+graph_G4 &lt;-rf.graph.table (LG4.final)</p>
+
+<p>LG4_final_map &lt;- draw.map(LG4.final, names= TRUE, grid=TRUE, cex.mrk=0.6)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+write.map(LG4.final, "mapa_onemap_G4.map")</p>
+
+<p>require(qtl)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+dat1 &lt;- read.cross("mm", file="m_feb06.raw", mapfile="mapa_onemap_G4.map")
+newmap &lt;- est.map(dat1, tol=1e-6, map.function="kosambi")</p>
+
+<p>plotMap(newmap, show.marker.names=TRUE, verbose=TRUE, ylab="Distance (cM)", xlab="group")</p>
+
+<h2>
+<a id="para-o-grupo-5" class="anchor" href="#para-o-grupo-5" aria-hidden="true"><span class="octicon octicon-link"></span></a>Para o grupo 5</h2>
+
+<h2>
+<a id="arquivo-das-sequências-7" class="anchor" href="#arquivo-das-sequ%C3%AAncias-7" aria-hidden="true"><span class="octicon octicon-link"></span></a>arquivo das sequências</h2>
+
+<p>set.map.fun(type="kosambi")
+LG5A &lt;- make.seq(lgs,5)
+TESTE5 &lt;- drop.marker(LG5A, Dominant.Bonferroni)
+LG5 &lt;- drop.marker(TESTE5, Codominant.Bonferroni)
+LG5.rcd.f2 &lt;- record(LG5)</p>
+
+<h2>
+<a id="para-automatizar-o-processo-de-mapeamento-de-uma-sequência-de-marcadores-combinando-comparar-e-funções-tryseq-7" class="anchor" href="#para-automatizar-o-processo-de-mapeamento-de-uma-sequ%C3%AAncia-de-marcadores-combinando-comparar-e-fun%C3%A7%C3%B5es-tryseq-7" aria-hidden="true"><span class="octicon octicon-link"></span></a>para automatizar o processo de mapeamento de uma sequência de marcadores, combinando comparar e funções try.seq</h2>
+
+<p>LG5.ord &lt;- order.seq(LG5, n.init=5, subset.search=c("twopt"),
+                     subset.n.try=30, subset.THRES=4,
+                     twopt.alg=c("rec"), 
+                     THRES=4, touchdown=TRUE, draw.try=FALSE,
+                     wait=1, tol=10E-2) ##o uso das opções de try, thres etc. proporcinou um maior aproveitamento de marcadores##
+(LG5.final&lt;-make.seq(LG5.ord, "force"))</p>
+
+<h2>
+<a id="compara-e-exibe-ordens-alternativas-plausíveis-para-uma-determinada-combinação-7" class="anchor" href="#compara-e-exibe-ordens-alternativas-plaus%C3%ADveis-para-uma-determinada-combina%C3%A7%C3%A3o-7" aria-hidden="true"><span class="octicon octicon-link"></span></a>Compara e exibe ordens alternativas plausíveis para uma determinada combinação</h2>
+
+<p>ripple.seq(LG5.final,ws=4,LOD=3,tol=10E-2)
+graph_G5 &lt;-rf.graph.table (LG5.final)</p>
+
+<p>LG5_final_map &lt;- draw.map(LG5.final, names= TRUE, grid=TRUE, cex.mrk=0.6)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+write.map(LG5.final, "mapa_onemap_G5.map")</p>
+
+<p>require(qtl)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+dat1 &lt;- read.cross("mm", file="m_feb06.raw", mapfile="mapa_onemap_G5.map")
+newmap &lt;- est.map(dat1, tol=1e-6, map.function="kosambi")</p>
+
+<p>plotMap(newmap, show.marker.names=TRUE, verbose=TRUE, ylab="Distance (cM)", xlab="group")</p>
+
+<h2>
+<a id="para-o-grupo-6" class="anchor" href="#para-o-grupo-6" aria-hidden="true"><span class="octicon octicon-link"></span></a>Para o grupo 6</h2>
+
+<h2>
+<a id="arquivo-das-sequências-8" class="anchor" href="#arquivo-das-sequ%C3%AAncias-8" aria-hidden="true"><span class="octicon octicon-link"></span></a>arquivo das sequências</h2>
+
+<p>set.map.fun(type="kosambi")
+LG6A &lt;- make.seq(lgs,6)
+TESTE6 &lt;- drop.marker(LG6A, Dominant.Bonferroni)
+LG6 &lt;- drop.marker(TESTE6, Codominant.Bonferroni)
+LG6.rcd.f2 &lt;- record(LG6)</p>
+
+<h2>
+<a id="para-automatizar-o-processo-de-mapeamento-de-uma-sequência-de-marcadores-combinando-comparar-e-funções-tryseq-8" class="anchor" href="#para-automatizar-o-processo-de-mapeamento-de-uma-sequ%C3%AAncia-de-marcadores-combinando-comparar-e-fun%C3%A7%C3%B5es-tryseq-8" aria-hidden="true"><span class="octicon octicon-link"></span></a>para automatizar o processo de mapeamento de uma sequência de marcadores, combinando comparar e funções try.seq</h2>
+
+<p>LG6.ord &lt;- order.seq(LG6, n.init=5, subset.search=c("twopt"),
+                     subset.n.try=30, subset.THRES=4,
+                     twopt.alg=c("rec"), 
+                     THRES=4, touchdown=TRUE, draw.try=FALSE,
+                     wait=1, tol=10E-2) ##o uso das opções de try, thres etc. proporcinou um maior aproveitamento de marcadores##
+(LG6.final&lt;-make.seq(LG6.ord, "force"))</p>
+
+<h2>
+<a id="compara-e-exibe-ordens-alternativas-plausíveis-para-uma-determinada-combinação-8" class="anchor" href="#compara-e-exibe-ordens-alternativas-plaus%C3%ADveis-para-uma-determinada-combina%C3%A7%C3%A3o-8" aria-hidden="true"><span class="octicon octicon-link"></span></a>Compara e exibe ordens alternativas plausíveis para uma determinada combinação</h2>
+
+<p>ripple.seq(LG6.final,ws=4,LOD=3,tol=10E-2)
+graph_G6 &lt;-rf.graph.table (LG6.final)</p>
+
+<p>LG6_final_map &lt;- draw.map(LG6.final, names= TRUE, grid=TRUE, cex.mrk=0.6)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+write.map(LG6.final, "mapa_onemap_G6.map")</p>
+
+<p>require(qtl)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+dat1 &lt;- read.cross("mm", file="m_feb06.raw", mapfile="mapa_onemap_G6.map")
+newmap &lt;- est.map(dat1, tol=1e-6, map.function="kosambi")</p>
+
+<p>plotMap(newmap, show.marker.names=TRUE, verbose=TRUE, ylab="Distance (cM)", xlab="group")</p>
+
+<h2>
+<a id="para-o-grupo-7" class="anchor" href="#para-o-grupo-7" aria-hidden="true"><span class="octicon octicon-link"></span></a>Para o grupo 7</h2>
+
+<h2>
+<a id="arquivo-das-sequências-9" class="anchor" href="#arquivo-das-sequ%C3%AAncias-9" aria-hidden="true"><span class="octicon octicon-link"></span></a>arquivo das sequências</h2>
+
+<p>set.map.fun(type="kosambi")
+LG7A &lt;- make.seq(lgs,7)
+TESTE7 &lt;- drop.marker(LG7A, Dominant.Bonferroni)
+LG7 &lt;- drop.marker(TESTE7, Codominant.Bonferroni)
+LG7.rcd.f2 &lt;- record(LG7)</p>
+
+<h2>
+<a id="para-automatizar-o-processo-de-mapeamento-de-uma-sequência-de-marcadores-combinando-comparar-e-funções-tryseq-9" class="anchor" href="#para-automatizar-o-processo-de-mapeamento-de-uma-sequ%C3%AAncia-de-marcadores-combinando-comparar-e-fun%C3%A7%C3%B5es-tryseq-9" aria-hidden="true"><span class="octicon octicon-link"></span></a>para automatizar o processo de mapeamento de uma sequência de marcadores, combinando comparar e funções try.seq</h2>
+
+<p>LG7.ord &lt;- order.seq(LG7, n.init=5, subset.search=c("twopt"),
+                     subset.n.try=30, subset.THRES=4,
+                     twopt.alg=c("rec"), 
+                     THRES=4, touchdown=TRUE, draw.try=FALSE,
+                     wait=1, tol=10E-2) ##o uso das opções de try, thres etc. proporcinou um maior aproveitamento de marcadores##
+(LG7.final&lt;-make.seq(LG7.ord, "force"))</p>
+
+<h2>
+<a id="compara-e-exibe-ordens-alternativas-plausíveis-para-uma-determinada-combinação-9" class="anchor" href="#compara-e-exibe-ordens-alternativas-plaus%C3%ADveis-para-uma-determinada-combina%C3%A7%C3%A3o-9" aria-hidden="true"><span class="octicon octicon-link"></span></a>Compara e exibe ordens alternativas plausíveis para uma determinada combinação</h2>
+
+<p>ripple.seq(LG7.final,ws=4,LOD=3,tol=10E-2)
+graph_G7 &lt;-rf.graph.table (LG7.final)</p>
+
+<p>LG7_final_map &lt;- draw.map(LG7.final, names= TRUE, grid=TRUE, cex.mrk=0.6)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+write.map(LG7.final, "mapa_onemap_G7.map")</p>
+
+<p>require(qtl)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+dat1 &lt;- read.cross("mm", file="m_feb06.raw", mapfile="mapa_onemap_G7.map")
+newmap &lt;- est.map(dat1, tol=1e-6, map.function="kosambi")</p>
+
+<p>plotMap(newmap, show.marker.names=TRUE, verbose=TRUE, ylab="Distance (cM)", xlab="group")</p>
+
+<h2>
+<a id="para-o-grupo-8" class="anchor" href="#para-o-grupo-8" aria-hidden="true"><span class="octicon octicon-link"></span></a>Para o grupo 8</h2>
+
+<h2>
+<a id="arquivo-das-sequências-10" class="anchor" href="#arquivo-das-sequ%C3%AAncias-10" aria-hidden="true"><span class="octicon octicon-link"></span></a>arquivo das sequências</h2>
+
+<p>set.map.fun(type="kosambi")
+LG8A &lt;- make.seq(lgs,8)
+TESTE8 &lt;- drop.marker(LG8A, Dominant.Bonferroni)
+LG8 &lt;- drop.marker(TESTE8, Codominant.Bonferroni)
+LG8.rcd.f2 &lt;- record(LG8)</p>
+
+<h2>
+<a id="para-automatizar-o-processo-de-mapeamento-de-uma-sequência-de-marcadores-combinando-comparar-e-funções-tryseq-10" class="anchor" href="#para-automatizar-o-processo-de-mapeamento-de-uma-sequ%C3%AAncia-de-marcadores-combinando-comparar-e-fun%C3%A7%C3%B5es-tryseq-10" aria-hidden="true"><span class="octicon octicon-link"></span></a>para automatizar o processo de mapeamento de uma sequência de marcadores, combinando comparar e funções try.seq</h2>
+
+<p>LG8.ord &lt;- order.seq(LG8, n.init=5, subset.search=c("twopt"),
+                     subset.n.try=30, subset.THRES=4,
+                     twopt.alg=c("rec"), 
+                     THRES=4, touchdown=TRUE, draw.try=FALSE,
+                     wait=1, tol=10E-2) ##o uso das opções de try, thres etc. proporcinou um maior aproveitamento de marcadores##
+(LG8.final&lt;-make.seq(LG8.ord, "force"))</p>
+
+<h2>
+<a id="compara-e-exibe-ordens-alternativas-plausíveis-para-uma-determinada-combinação-10" class="anchor" href="#compara-e-exibe-ordens-alternativas-plaus%C3%ADveis-para-uma-determinada-combina%C3%A7%C3%A3o-10" aria-hidden="true"><span class="octicon octicon-link"></span></a>Compara e exibe ordens alternativas plausíveis para uma determinada combinação</h2>
+
+<p>ripple.seq(LG8.final,ws=4,LOD=3,tol=10E-2)
+graph_G8 &lt;-rf.graph.table (LG8.final)</p>
+
+<p>LG8_final_map &lt;- draw.map(LG8.final, names= TRUE, grid=TRUE, cex.mrk=0.6)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+write.map(LG8.final, "mapa_onemap_G8.map")</p>
+
+<p>require(qtl)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+dat1 &lt;- read.cross("mm", file="m_feb06.raw", mapfile="mapa_onemap_G8.map")
+newmap &lt;- est.map(dat1, tol=1e-6, map.function="kosambi")</p>
+
+<p>plotMap(newmap, show.marker.names=TRUE, verbose=TRUE, ylab="Distance (cM)", xlab="group")</p>
+
+<h2>
+<a id="para-o-grupo-9" class="anchor" href="#para-o-grupo-9" aria-hidden="true"><span class="octicon octicon-link"></span></a>Para o grupo 9</h2>
+
+<h2>
+<a id="arquivo-das-sequências-11" class="anchor" href="#arquivo-das-sequ%C3%AAncias-11" aria-hidden="true"><span class="octicon octicon-link"></span></a>arquivo das sequências</h2>
+
+<p>set.map.fun(type="kosambi")
+LG9A &lt;- make.seq(lgs,9)
+TESTE9 &lt;- drop.marker(LG9A, Dominant.Bonferroni)
+LG9 &lt;- drop.marker(TESTE9, Codominant.Bonferroni)
+LG9.rcd.f2 &lt;- record(LG9)</p>
+
+<h2>
+<a id="para-automatizar-o-processo-de-mapeamento-de-uma-sequência-de-marcadores-combinando-comparar-e-funções-tryseq-11" class="anchor" href="#para-automatizar-o-processo-de-mapeamento-de-uma-sequ%C3%AAncia-de-marcadores-combinando-comparar-e-fun%C3%A7%C3%B5es-tryseq-11" aria-hidden="true"><span class="octicon octicon-link"></span></a>para automatizar o processo de mapeamento de uma sequência de marcadores, combinando comparar e funções try.seq</h2>
+
+<p>LG9.ord &lt;- order.seq(LG9, n.init=5, subset.search=c("twopt"),
+                     subset.n.try=30, subset.THRES=4,
+                     twopt.alg=c("rec"), 
+                     THRES=4, touchdown=TRUE, draw.try=FALSE,
+                     wait=1, tol=10E-2) ##o uso das opções de try, thres etc. proporcinou um maior aproveitamento de marcadores##
+(LG9.final&lt;-make.seq(LG9.ord, "force"))</p>
+
+<h2>
+<a id="compara-e-exibe-ordens-alternativas-plausíveis-para-uma-determinada-combinação-11" class="anchor" href="#compara-e-exibe-ordens-alternativas-plaus%C3%ADveis-para-uma-determinada-combina%C3%A7%C3%A3o-11" aria-hidden="true"><span class="octicon octicon-link"></span></a>Compara e exibe ordens alternativas plausíveis para uma determinada combinação</h2>
+
+<p>ripple.seq(LG9.final,ws=4,LOD=3,tol=10E-2)
+graph_G9 &lt;-rf.graph.table (LG9.final)</p>
+
+<p>LG9_final_map &lt;- draw.map(LG9.final, names= TRUE, grid=TRUE, cex.mrk=0.6)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+write.map(LG9.final, "mapa_onemap_G9.map")</p>
+
+<p>require(qtl)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+dat1 &lt;- read.cross("mm", file="m_feb06.raw", mapfile="mapa_onemap_G9.map")
+newmap &lt;- est.map(dat1, tol=1e-6, map.function="kosambi")</p>
+
+<p>plotMap(newmap, show.marker.names=TRUE, verbose=TRUE, ylab="Distance (cM)", xlab="group")</p>
+
+<h2>
+<a id="para-o-grupo-10" class="anchor" href="#para-o-grupo-10" aria-hidden="true"><span class="octicon octicon-link"></span></a>Para o grupo 10</h2>
+
+<h2>
+<a id="arquivo-das-sequências-12" class="anchor" href="#arquivo-das-sequ%C3%AAncias-12" aria-hidden="true"><span class="octicon octicon-link"></span></a>arquivo das sequências</h2>
+
+<p>set.map.fun(type="kosambi")
+LG10A &lt;- make.seq(lgs,10)
+TESTE10 &lt;- drop.marker(LG10A, Dominant.Bonferroni)
+LG10 &lt;- drop.marker(TESTE10, Codominant.Bonferroni)
+LG10.rcd.f2 &lt;- record(LG10)</p>
+
+<h2>
+<a id="para-automatizar-o-processo-de-mapeamento-de-uma-sequência-de-marcadores-combinando-comparar-e-funções-tryseq-12" class="anchor" href="#para-automatizar-o-processo-de-mapeamento-de-uma-sequ%C3%AAncia-de-marcadores-combinando-comparar-e-fun%C3%A7%C3%B5es-tryseq-12" aria-hidden="true"><span class="octicon octicon-link"></span></a>para automatizar o processo de mapeamento de uma sequência de marcadores, combinando comparar e funções try.seq</h2>
+
+<p>LG10.ord &lt;- order.seq(LG10, n.init=5, subset.search=c("twopt"),
+                     subset.n.try=30, subset.THRES=4,
+                     twopt.alg=c("rec"), 
+                     THRES=4, touchdown=TRUE, draw.try=FALSE,
+                     wait=1, tol=10E-2) ##o uso das opções de try, thres etc. proporcinou um maior aproveitamento de marcadores##
+(LG10.final&lt;-make.seq(LG10.ord, "force"))</p>
+
+<h2>
+<a id="compara-e-exibe-ordens-alternativas-plausíveis-para-uma-determinada-combinação-12" class="anchor" href="#compara-e-exibe-ordens-alternativas-plaus%C3%ADveis-para-uma-determinada-combina%C3%A7%C3%A3o-12" aria-hidden="true"><span class="octicon octicon-link"></span></a>Compara e exibe ordens alternativas plausíveis para uma determinada combinação</h2>
+
+<p>ripple.seq(LG10.final,ws=4,LOD=3,tol=10E-2)
+graph_G10 &lt;-rf.graph.table (LG10.final)</p>
+
+<p>LG10_final_map &lt;- draw.map(LG10.final, names= TRUE, grid=TRUE, cex.mrk=0.6)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+write.map(LG10.final, "mapa_onemap_G10.map")</p>
+
+<p>require(qtl)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+dat1 &lt;- read.cross("mm", file="m_feb06.raw", mapfile="mapa_onemap_G10.map")
+newmap &lt;- est.map(dat1, tol=1e-6, map.function="kosambi")</p>
+
+<p>plotMap(newmap, show.marker.names=TRUE, verbose=TRUE, ylab="Distance (cM)", xlab="group")</p>
+
+<h2>
+<a id="para-o-grupo-11" class="anchor" href="#para-o-grupo-11" aria-hidden="true"><span class="octicon octicon-link"></span></a>Para o grupo 11</h2>
+
+<h2>
+<a id="arquivo-das-sequências-13" class="anchor" href="#arquivo-das-sequ%C3%AAncias-13" aria-hidden="true"><span class="octicon octicon-link"></span></a>arquivo das sequências</h2>
+
+<p>set.map.fun(type="kosambi")
+LG11A &lt;- make.seq(lgs,11)
+TESTE11 &lt;- drop.marker(LG11A, Dominant.Bonferroni)
+LG11 &lt;- drop.marker(TESTE11, Codominant.Bonferroni)
+LG11.rcd.f2 &lt;- record(LG11)</p>
+
+<h2>
+<a id="para-automatizar-o-processo-de-mapeamento-de-uma-sequência-de-marcadores-combinando-comparar-e-funções-tryseq-13" class="anchor" href="#para-automatizar-o-processo-de-mapeamento-de-uma-sequ%C3%AAncia-de-marcadores-combinando-comparar-e-fun%C3%A7%C3%B5es-tryseq-13" aria-hidden="true"><span class="octicon octicon-link"></span></a>para automatizar o processo de mapeamento de uma sequência de marcadores, combinando comparar e funções try.seq</h2>
+
+<p>LG11.ord &lt;- order.seq(LG11, n.init=5, subset.search=c("twopt"),
+                      subset.n.try=30, subset.THRES=4,
+                      twopt.alg=c("rec"), 
+                      THRES=4, touchdown=TRUE, draw.try=FALSE,
+                      wait=1, tol=10E-2) ##o uso das opções de try, thres etc. proporcinou um maior aproveitamento de marcadores##
+(LG11.final&lt;-make.seq(LG11.ord, "force"))</p>
+
+<h2>
+<a id="compara-e-exibe-ordens-alternativas-plausíveis-para-uma-determinada-combinação-13" class="anchor" href="#compara-e-exibe-ordens-alternativas-plaus%C3%ADveis-para-uma-determinada-combina%C3%A7%C3%A3o-13" aria-hidden="true"><span class="octicon octicon-link"></span></a>Compara e exibe ordens alternativas plausíveis para uma determinada combinação</h2>
+
+<p>ripple.seq(LG11.final,ws=4,LOD=3,tol=10E-2)
+graph_G11 &lt;-rf.graph.table (LG11.final)</p>
+
+<p>LG11_final_map &lt;- draw.map(LG11.final, names= TRUE, grid=TRUE, cex.mrk=0.6)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+write.map(LG11.final, "mapa_onemap_G11.map")</p>
+
+<p>require(qtl)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+dat1 &lt;- read.cross("mm", file="m_feb06.raw", mapfile="mapa_onemap_G11.map")
+newmap &lt;- est.map(dat1, tol=1e-6, map.function="kosambi")</p>
+
+<p>plotMap(newmap, show.marker.names=TRUE, verbose=TRUE, ylab="Distance (cM)", xlab="group")</p>
+
+<h2>
+<a id="para-o-grupo-12" class="anchor" href="#para-o-grupo-12" aria-hidden="true"><span class="octicon octicon-link"></span></a>Para o grupo 12</h2>
+
+<h2>
+<a id="arquivo-das-sequências-14" class="anchor" href="#arquivo-das-sequ%C3%AAncias-14" aria-hidden="true"><span class="octicon octicon-link"></span></a>arquivo das sequências</h2>
+
+<p>set.map.fun(type="kosambi")
+LG12A &lt;- make.seq(lgs,12)
+TESTE12 &lt;- drop.marker(LG12A, Dominant.Bonferroni)
+LG12 &lt;- drop.marker(TESTE12, Codominant.Bonferroni)
+LG12.rcd.f2 &lt;- record(LG12)</p>
+
+<h2>
+<a id="para-automatizar-o-processo-de-mapeamento-de-uma-sequência-de-marcadores-combinando-comparar-e-funções-tryseq-14" class="anchor" href="#para-automatizar-o-processo-de-mapeamento-de-uma-sequ%C3%AAncia-de-marcadores-combinando-comparar-e-fun%C3%A7%C3%B5es-tryseq-14" aria-hidden="true"><span class="octicon octicon-link"></span></a>para automatizar o processo de mapeamento de uma sequência de marcadores, combinando comparar e funções try.seq</h2>
+
+<p>LG12.ord &lt;- order.seq(LG12, n.init=5, subset.search=c("twopt"),
+                      subset.n.try=30, subset.THRES=4,
+                      twopt.alg=c("rec"), 
+                      THRES=4, touchdown=TRUE, draw.try=FALSE,
+                      wait=1, tol=10E-2) ##o uso das opções de try, thres etc. proporcinou um maior aproveitamento de marcadores##
+(LG12.final&lt;-make.seq(LG12.ord, "force"))</p>
+
+<h2>
+<a id="compara-e-exibe-ordens-alternativas-plausíveis-para-uma-determinada-combinação-14" class="anchor" href="#compara-e-exibe-ordens-alternativas-plaus%C3%ADveis-para-uma-determinada-combina%C3%A7%C3%A3o-14" aria-hidden="true"><span class="octicon octicon-link"></span></a>Compara e exibe ordens alternativas plausíveis para uma determinada combinação</h2>
+
+<p>ripple.seq(LG12.final,ws=4,LOD=3,tol=10E-2)
+graph_G12 &lt;-rf.graph.table (LG12.final)</p>
+
+<p>LG12_final_map &lt;- draw.map(LG12.final, names= TRUE, grid=TRUE, cex.mrk=0.6)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+write.map(LG12.final, "mapa_onemap_G12.map")</p>
+
+<p>require(qtl)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+dat1 &lt;- read.cross("mm", file="m_feb06.raw", mapfile="mapa_onemap_G12.map")
+newmap &lt;- est.map(dat1, tol=1e-6, map.function="kosambi")</p>
+
+<p>plotMap(newmap, show.marker.names=TRUE, verbose=TRUE, ylab="Distance (cM)", xlab="group")</p>
+
+<h2>
+<a id="unir-os-6-primeiros-grupos-123a3b3c4" class="anchor" href="#unir-os-6-primeiros-grupos-123a3b3c4" aria-hidden="true"><span class="octicon octicon-link"></span></a>unir os 6 primeiros grupos-1,2,3a,3b,3c,4</h2>
+
+<p>maps.list.1.6 &lt;- list(LG1.final, LG2.final, lg3a.final, lg3b.final, lg3c.final, LG4.final)
+mapa.1.6 &lt;- draw.map(maps.list.1.6, names= TRUE, grid=TRUE, cex.mrk=0.6)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+write.map(maps.list.1.6, "mapa_onemap_1_6.map")
+require(qtl)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+dat2 &lt;- read.cross("mm", file="m_feb06.raw", mapfile="mapa_onemap_1_6.map")
+newmap &lt;- est.map(dat2, tol=1e-6, map.function="kosambi")
+plotMap(newmap, show.marker.names=TRUE, verbose=TRUE, ylab="Distance (cM)", xlab="group")</p>
+
+<h2>
+<a id="unir-os-6-segundos-grupos-5678910" class="anchor" href="#unir-os-6-segundos-grupos-5678910" aria-hidden="true"><span class="octicon octicon-link"></span></a>unir os 6 segundos grupos-5,6,7,8,9,10</h2>
+
+<p>maps.list.5.10 &lt;- list(LG5.final, LG6.final, LG7.final, LG8.final, LG9.final, LG10.final)
+mapa.5.10 &lt;- draw.map(maps.list.5.10, names= TRUE, grid=TRUE, cex.mrk=0.6)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+write.map(maps.list.5.10, "mapa_onemap_5_10.map")
+require(qtl)
+setwd ("E:/ESALQ/PÓS GRADUAÇÃO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/aula6")
+dat3 &lt;- read.cross("mm", file="m_feb06.raw", mapfile="mapa_onemap_5_10.map")
+newmap &lt;- est.map(dat3, tol=1e-6, map.function="kosambi")</p>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/gcmmoreira/commands">Comandos no RStudio</a> is maintained by <a href="https://github.com/gcmmoreira">gcmmoreira</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
+
